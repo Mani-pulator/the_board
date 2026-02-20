@@ -40,6 +40,10 @@ export function verifyOtp(req: Request, res: Response, next: NextFunction) {
    * If they are an existing user, then do nothing
    */
 
+  const { otp, email } = req.body;
+
+//   Find existing OTP
+
   return res.json({ message: "Works!" });
 }
 
