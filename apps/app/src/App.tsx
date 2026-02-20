@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './index.css'
 import Navbar from './components/Navbar'
+import Booklet from './components/booklet/Booklet';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -8,6 +9,7 @@ function App() {
   return (
     <>
       <Navbar userName="Simran Panthi" onPostEvent={() => {}} />
+      <Booklet userName="Lara De Leon"/>
     </>
   )
 }
