@@ -9,7 +9,7 @@ function App() {
   return (
     <>
       <Navbar userName="Simran Panthi" onPostEvent={() => {}} />
-      <Booklet userName="Lara De Leon"/>
+      <Booklet/>
     </>
   )
 }
