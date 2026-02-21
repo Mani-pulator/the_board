@@ -1,5 +1,5 @@
 // Navbar.jsx
-import { IdCard, LucidePlus } from "lucide-react";
+import { IdCard, LucidePlus, PanelTop, BookOpen } from "lucide-react";
 import Button from "./common/Button";
 import FilterBar from "./Filters";
 
@@ -28,21 +28,32 @@ export default function Navbar({ userName = "simranpanthi101@gmail.com", onPostE
                     </div>
                 </div>
 
-                {/* toggle button to switch between booklet and poster view*/}        
-                {/* selected option will be in black */}
-                <div className="flex rounded-full border border-stone-300 overflow-hidden">
-                    {/*board*/}
-                    <button type="button" onClick={() => setBoardLayout("board")} 
-                    className={`px-4 py-1 text-sm font-medium ${
-                        boardLayout === "board"  ? "bg-black text-white": "bg-white text-stone-600"}`}>
-                    Board
-                    </button>
-                    {/*booklet*/}
-                    <button type="button" onClick={() => setBoardLayout("booklet")}
-                    className={`px-4 py-1 text-sm font-medium ${
-                        boardLayout === "booklet" ? "bg-black text-white" : "bg-white text-stone-600"}`}>
-                    Booklet
-                    </button>
+                {/*centered - toggle button to switch between booklet and poster view*/}
+                {/*selected option will be in black*/}
+                <div className="absolute left-1/2 -translate-x-1/2">
+                    <div className="flex rounded-full border border-stone-300 overflow-hidden bg-stone-100">                        
+                        {/*board*/}
+                        <button type="button" onClick={() => setBoardLayout("board")}
+                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium ${
+                                boardLayout === "board"
+                                    ? "bg-black text-white"
+                                    : "bg-transparent text-stone-600"
+                            }`}>
+                            <PanelTop className="h-4 w-4" />
+                            <span className="hidden sm:inline">Board</span>
+                        </button>
+
+                        {/*booklet*/}
+                        <button type="button" onClick={() => setBoardLayout("booklet")}
+                            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium ${
+                                boardLayout === "booklet"
+                                    ? "bg-black text-white"
+                                    : "bg-transparent text-stone-600"
+                            }`}>
+                            <BookOpen className="h-4 w-4" />
+                            <span className="hidden sm:inline">Booklet</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* right */}
