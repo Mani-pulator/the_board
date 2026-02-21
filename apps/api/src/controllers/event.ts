@@ -15,6 +15,8 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
         ? req.body.tags.split(",").map((t: string) => t.trim())
         : [];
 
+    // const dateFormatted = new Date(req.body.date);
+
     const event = await createEventInDb({
         title,
         description,

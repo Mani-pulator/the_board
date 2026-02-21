@@ -1,6 +1,6 @@
 import { db } from "../db";
-import { event as eventsTable } from "../db/schema";
-import { eq } from 'drizzle-orm';
+import { event as eventsTable, user as userTable } from "../db/schema";
+import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { createClient } from "@supabase/supabase-js";
 
@@ -41,16 +41,33 @@ export const createEventInDb = async (eventData: CreateEventData) => {
 
   
 
-  const newEvent = await db.insert(eventsTable).values({
-    id: nanoid(),
-    title: eventData.title,
-    description: eventData.description,
-    date: eventData.date,
-    affiliation: eventData.affiliation || null,
-    tags: eventData.tagsArray || [],
-    creatorEmail: eventData.creatorEmail,
-    posterUrl: posterUrl,
-  }).returning();
+  try {
+    const [creator] = await db
+      .select({ id: userTable.id })
+      .from(userTable)
+      .where(eq(userTable.email, eventData.creatorEmail))
+      .limit(1);
 
-  return newEvent[0];
+    if (!creator) {
+      throw new Error(`User not found: ${eventData.creatorEmail}`);
+    }
+
+    const newEvent = await db.insert(eventsTable).values({
+      title: eventData.title,
+      description: eventData.description,
+      date: eventData.date,
+      affiliation: eventData.affiliation || null,
+      tags: eventData.tagsArray || [],
+      creatorId: creator.id,
+      posterUrl: posterUrl,
+    }).returning();
+
+    return newEvent[0];
+  } catch (err: unknown) {
+    const cause = err instanceof Error && "cause" in err ? (err as Error & { cause?: Error }).cause : null;
+    const pgMessage = cause instanceof Error ? cause.message : null;
+    const pgCode = cause && typeof cause === "object" && "code" in cause ? (cause as { code?: string }).code : null;
+    const message = pgMessage || (err instanceof Error ? err.message : String(err));
+    throw new Error(`Failed to create event${pgCode ? ` [${pgCode}]` : ""}: ${message}`);
+  }
 };
