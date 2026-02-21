@@ -3,7 +3,12 @@ import { IdCard, LucidePlus } from "lucide-react";
 import Button from "./common/Button";
 import FilterBar from "./Filters";
 
-export default function Navbar({ userName = "simranpanthi101@gmail.com", onPostEvent }: { userName?: string; onPostEvent: () => void }) {
+export default function Navbar({ userName = "simranpanthi101@gmail.com", onPostEvent, boardLayout, setBoardLayout }: { 
+    userName?: string; 
+    onPostEvent: () => void 
+    boardLayout: "board" | "booklet";
+    setBoardLayout: (v: "board" | "booklet") => void;
+}) {
 
     return (
         <header className="w-full bg-white  border border-stone-200">
@@ -21,6 +26,23 @@ export default function Navbar({ userName = "simranpanthi101@gmail.com", onPostE
                            | {userName}
                         </span>
                     </div>
+                </div>
+
+                {/* toggle button to switch between booklet and poster view*/}        
+                {/* selected option will be in black */}
+                <div className="flex rounded-full border border-stone-300 overflow-hidden">
+                    {/*board*/}
+                    <button type="button" onClick={() => setBoardLayout("board")} 
+                    className={`px-4 py-1 text-sm font-medium ${
+                        boardLayout === "board"  ? "bg-black text-white": "bg-white text-stone-600"}`}>
+                    Board
+                    </button>
+                    {/*booklet*/}
+                    <button type="button" onClick={() => setBoardLayout("booklet")}
+                    className={`px-4 py-1 text-sm font-medium ${
+                        boardLayout === "booklet" ? "bg-black text-white" : "bg-white text-stone-600"}`}>
+                    Booklet
+                    </button>
                 </div>
 
                 {/* right */}

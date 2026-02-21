@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import InitialView from "./pages/InitialView";
 import Board from "./pages/Board";
 import PosterDetailView from "./pages/PosterDetailView";
+import Booklet from "./pages/Booklet";
 
 // --- Types ---
 type View = "login" | "initial" | "board" | "detail";
@@ -49,6 +50,9 @@ export default function App() {
   const [isPostEventOpen, setIsPostEventOpen] = useState<boolean>(false);
   const [loadingEvents, setLoadingEvents] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+
+  // for toggle button to switch between booklet and poster board 
+  const [boardLayout, setBoardLayout] = useState<"board" | "booklet">("board");
 
   const selectedEvent = useMemo(
     () => events.find((e) => e.id === selectedEventId) ?? null,
@@ -101,7 +105,7 @@ export default function App() {
   };
 
   return (
-    <Wrapper navbar={isLoggedIn} onPostEvent={openPostEvent}>
+    <Wrapper navbar={isLoggedIn} onPostEvent={openPostEvent} boardLayout={boardLayout} setBoardLayout={setBoardLayout}>
       {/* Global modal */}
       <CreateEventModal
         open={isPostEventOpen}
@@ -118,13 +122,16 @@ export default function App() {
 
       {view === "initial" && <InitialView onContinue={() => setView("board")} />}
 
-      {view === "board" && (
-        <Board
-          events={events}
-          loading={loadingEvents}
-          error={error}
-          onOpenEvent={openEventDetail}
-        />
+      {view === "board" && boardLayout === "board" && (
+      <Board
+        events={events}
+        loading={loadingEvents}
+        error={error}
+        onOpenEvent={openEventDetail} />
+      )}
+
+      {view === "board" && boardLayout === "booklet" && (
+        <Booklet />
       )}
 
       {view === "detail" && selectedEvent && (
