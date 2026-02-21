@@ -14,6 +14,7 @@ interface CreateEventData {
   tagsArray?: string[];
   creatorEmail: string;
   posterImage?: Express.Multer.File;
+  registrationDeadline: string;
 }
 
 export const createEventInDb = async (eventData: CreateEventData) => {
@@ -60,6 +61,7 @@ export const createEventInDb = async (eventData: CreateEventData) => {
       tags: eventData.tagsArray || [],
       creatorId: creator.id,
       posterUrl: posterUrl,
+      registrationDeadline: eventData.registrationDeadline,
     }).returning();
 
     return newEvent[0];
