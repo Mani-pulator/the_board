@@ -1,6 +1,6 @@
 import { db } from "../db";
-import { event as eventsTable } from "../db/schema";
-import { and, gte, lte, sql } from 'drizzle-orm';
+import { event as eventsTable, user as userTable } from "../db/schema";
+import { eq, and, gte, lte, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { createClient } from "@supabase/supabase-js";
 
@@ -12,12 +12,13 @@ interface CreateEventData {
   date: string;
   registrationDeadline: string;
   affiliation?: string;
-  tags?: string[];
+  tagsArray?: string[];
   creatorId: number;
   posterImage?: Express.Multer.File;
 }
 
 export const createEventInDb = async (eventData: CreateEventData) => {
+
   let posterUrl: string | null = null;
 
   if (eventData.posterImage) {
@@ -39,20 +40,50 @@ export const createEventInDb = async (eventData: CreateEventData) => {
     posterUrl = urlData.publicUrl;
   }
 
-  const newEvent = await db.insert(eventsTable).values({
-    // id: nanoid(),
-    title: eventData.title,
-    description: eventData.description,
-    date: eventData.date,
-    registrationDeadline: eventData.registrationDeadline,
-    affiliation: eventData.affiliation || null,
-    tags: eventData.tags || [],
-    creatorId: eventData.creatorId,
-    posterUrl: posterUrl,
-  }).returning();
 
-  return newEvent[0];
+  
+
+  try {
+    const [creator] = await db
+      .select({ id: userTable.id })
+      .from(userTable)
+      .where(eq(userTable.id, eventData.creatorId))
+      .limit(1);
+
+    if (!creator) {
+      throw new Error(`User not found: ${eventData.creatorId}`);
+    }
+
+    const newEvent = await db.insert(eventsTable).values({
+      title: eventData.title,
+      description: eventData.description,
+      date: eventData.date,
+      affiliation: eventData.affiliation || null,
+      tags: eventData.tagsArray || [],
+      creatorId: creator.id,
+      posterUrl: posterUrl,
+      registrationDeadline: eventData.registrationDeadline,
+    }).returning();
+
+    return newEvent[0];
+  } catch (err: unknown) {
+    const cause = err instanceof Error && "cause" in err ? (err as Error & { cause?: Error }).cause : null;
+    const pgMessage = cause instanceof Error ? cause.message : null;
+    const pgCode = cause && typeof cause === "object" && "code" in cause ? (cause as { code?: string }).code : null;
+    const message = pgMessage || (err instanceof Error ? err.message : String(err));
+    throw new Error(`Failed to create event${pgCode ? ` [${pgCode}]` : ""}: ${message}`);
+  }
 };
+
+export const getEventsInDb = async () => {
+  const events = await db.select().from(eventsTable);
+  return events;
+}
+
+export const getEventByIdInDb = async (id: string) => {
+  const event = await db.select().from(eventsTable).where(eq(eventsTable.id, parseInt(id)));
+  return event;
+}
 
 export const fetchEvents = async (tags?: string[], startDate?: string, endDate?: string, registrationDeadline?: string) => {
   const conditions = [];
