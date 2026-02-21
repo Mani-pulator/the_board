@@ -1,11 +1,15 @@
 // App.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import CreateEventModal from "./components/CreateEventModal";
 import Wrapper from "./Wrapper";
 import Login from "./pages/Login";
 import InitialView from "./pages/InitialView";
 import Board from "./pages/Board";
 import PosterDetailView from "./pages/PosterDetailView";
+import Booklet from "./pages/Booklet";
+import { eventsService, type EventFilters } from "./services/event";
+import { authService } from "./services/auth";
+
 
 // --- Types ---
 type View = "login" | "initial" | "board" | "detail";
@@ -20,26 +24,11 @@ export type EventItem = {
   counts: { going: number; maybe: number; not_going: number };
 };
 
-// --- Fake API (replace with your services) ---
-async function fetchEvents(): Promise<EventItem[]> {
-  // replace with eventsService.list()
-  return [
-    {
-      id: "1",
-      title: "Sample Event",
-      posterUrl: "/sample_posters/poster_1.png",
-      registrationDeadline: "2023-01-01",
-      eventDate: "2023-01-01",
-      tags: ["Tag 1", "Tag 2"],
-      counts: { going: 12, maybe: 5, not_going: 2 },
-    },
-  ];
-}
-
 export default function App() {
   // Auth + view
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [view, setView] = useState<View>("login");
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => !!localStorage.getItem("token"));
+  const [userEmail, setUserEmail] = useState<string>(() => localStorage.getItem("email") ?? "");
+  const [view, setView] = useState<View>(() => localStorage.getItem("token") ? "board" : "login");
 
   // Data
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -50,33 +39,35 @@ export default function App() {
   const [loadingEvents, setLoadingEvents] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
+  // for toggle button to switch between booklet and poster board 
+  const [boardLayout, setBoardLayout] = useState<"board" | "booklet">("board");
+
   const selectedEvent = useMemo(
     () => events.find((e) => e.id === selectedEventId) ?? null,
     [events, selectedEventId]
   );
 
+  const loadEvents = useCallback(async (filters?: EventFilters) => {
+    setLoadingEvents(true);
+    setError("");
+    try {
+      const data = await eventsService.list(filters);
+      setEvents(data);
+    } catch {
+      setError("Failed to load events.");
+    } finally {
+      setLoadingEvents(false);
+    }
+  }, []);
+
   // Load initial data after login
   useEffect(() => {
     if (!isLoggedIn) return;
-
-    (async () => {
-      setLoadingEvents(true);
-      setError("");
-      try {
-        const data = await fetchEvents();
-        setEvents(data);
-        setView("board");
-      } catch {
-        setError("Failed to load events.");
-      } finally {
-        setLoadingEvents(false);
-      }
-    })();
-  }, [isLoggedIn]);
+    loadEvents();
+  }, [isLoggedIn, loadEvents]);
 
   // --- Handlers ---
   const openPostEvent = () => setIsPostEventOpen(true);
-  const closePostEvent = () => setIsPostEventOpen(false);
 
   const openEventDetail = (id: string) => {
     setSelectedEventId(id);
@@ -88,12 +79,21 @@ export default function App() {
     setSelectedEventId(null);
   };
 
-  const onLoginSuccess = () => {
+  const onLoginSuccess = (email: string) => {
+    setUserEmail(email);
     setIsLoggedIn(true);
     setView("board");
   };
 
-  const onLogout = () => {
+  const onFilterChange = (filters: EventFilters) => {
+    loadEvents(filters);
+  };
+
+  const onLogout = async () => {
+    await authService.logout().catch(() => {});
+    localStorage.removeItem("token");
+    localStorage.removeItem("email");
+    setUserEmail("");
     setIsLoggedIn(false);
     setView("login");
     setSelectedEventId(null);
@@ -101,15 +101,15 @@ export default function App() {
   };
 
   return (
-    <Wrapper navbar={isLoggedIn} onPostEvent={openPostEvent}>
+    <Wrapper navbar={isLoggedIn} onPostEvent={openPostEvent}  boardLayout={boardLayout} userEmail={userEmail} onFilterChange={onFilterChange} onLogout={onLogout} setBoardLayout={setBoardLayout}>
       {/* Global modal */}
       <CreateEventModal
         open={isPostEventOpen}
         onClose={() => setIsPostEventOpen(false)}
-        onCreate={(payload) => {
-          // parent does API call + updates events list
-          console.log(payload);
+        onCreate={async (payload) => {
+          await eventsService.create(payload, userEmail);
           setIsPostEventOpen(false);
+          await loadEvents();
         }}
       />
 
@@ -118,13 +118,16 @@ export default function App() {
 
       {view === "initial" && <InitialView onContinue={() => setView("board")} />}
 
-      {view === "board" && (
-        <Board
-          events={events}
-          loading={loadingEvents}
-          error={error}
-          onOpenEvent={openEventDetail}
-        />
+      {view === "board" && boardLayout === "board" && (
+      <Board
+        events={events}
+        loading={loadingEvents}
+        error={error}
+        onOpenEvent={openEventDetail} />
+      )}
+
+      {view === "board" && boardLayout === "booklet" && (
+        <Booklet events={events} onOpenEvent={openEventDetail} />
       )}
 
       {view === "detail" && selectedEvent && (
