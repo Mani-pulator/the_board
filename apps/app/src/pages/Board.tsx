@@ -291,7 +291,8 @@ export default function Board({ events, loading, error, onOpenEvent }: BoardProp
           backgroundImage: 'url(/pins/granite-texture.jpg)',
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center'
+          backgroundPosition: 'center',
+          border: '24px solid #3E2723'
         }}
       >
         {events.slice(0, MAX_POSTERS).map((event) => {
