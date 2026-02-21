@@ -1,5 +1,5 @@
 // PosterUploaderDropzone.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDropzone, type FileRejection } from "react-dropzone";
 import { Upload, X } from "lucide-react";
 

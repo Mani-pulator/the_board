@@ -1,5 +1,5 @@
 // OtpLogin.tsx
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { authService } from "../services/auth";
 
 type Step = "email" | "otp";

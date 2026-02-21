@@ -1,4 +1,3 @@
-import React from "react";
 import { CalendarSearch } from "lucide-react";
 
 type InitialViewProps = {

@@ -1,12 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import type { EventItem } from "../App";
 
-type Poster = {
-  id: string;
-  title: string;
-  events: EventItem[];
-};
-
 type BoardProps = {
   events: EventItem[];
   loading?: boolean;
@@ -18,7 +12,7 @@ type BoardProps = {
 const persistentSlotMap = new Map<string, number>();
 let hasInitialized = false;
 
-export default function Board({ events, loading, error, onOpenEvent }: BoardProps) {  const [zoom, setZoom] = useState(0.36);
+export default function Board({ events, loading: _loading, error: _error, onOpenEvent }: BoardProps) {  const [zoom, setZoom] = useState(0.36);
   const [pan, setPan] = useState({ x: 0, y: 24 }); // 24px offset to account for removed top padding
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
