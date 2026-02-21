@@ -11,7 +11,7 @@ interface CreateEventData {
   description: string;
   date: string;
   affiliation?: string;
-  tags?: string[];
+  tagsArray?: string[];
   creatorEmail: string;
   posterImage?: Express.Multer.File;
 }
@@ -38,13 +38,16 @@ export const createEventInDb = async (eventData: CreateEventData) => {
     posterUrl = urlData.publicUrl;
   }
 
+
+  
+
   const newEvent = await db.insert(eventsTable).values({
     id: nanoid(),
     title: eventData.title,
     description: eventData.description,
     date: eventData.date,
     affiliation: eventData.affiliation || null,
-    tags: eventData.tags || [],
+    tags: eventData.tagsArray || [],
     creatorEmail: eventData.creatorEmail,
     posterUrl: posterUrl,
   }).returning();

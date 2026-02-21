@@ -6,14 +6,21 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
     // I don't like that there is not validation here, but it's ok for now.
     const { title, description, date, affiliation, tags, creatorEmail} = req.body;
     const posterImage = req.file;
+    console.log(req.body);
 
+    
+
+    const tagsArray: string[] =
+      typeof req.body.tags === "string"
+        ? req.body.tags.split(",").map((t: string) => t.trim())
+        : [];
 
     const event = await createEventInDb({
         title,
         description,
         date,
         affiliation,
-        tags,
+        tagsArray,
         creatorEmail,
         posterImage,
     });
